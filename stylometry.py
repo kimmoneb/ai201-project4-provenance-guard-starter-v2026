@@ -32,6 +32,7 @@ anything together:
 
 import re
 import statistics
+import stylometry
 
 
 def sentences(text: str) -> list[str]:
@@ -48,7 +49,18 @@ def words(text: str) -> list[str]:
 # ── The three measures — YOU BUILD THESE ─────────────────────────────────────
 
 def sentence_length_spread(text: str) -> float:
-    """
+        lengths = [len(words(sentence)) for sentence in sentences(text)]
+
+        if len(lengths) < 2:
+            return 0.0
+
+        average = statistics.mean(lengths)
+
+        if average == 0:
+            return 0.0
+
+        return statistics.stdev(lengths) / average
+"""
     How much sentence length varies. ← TODO
 
     Returns:
@@ -65,11 +77,17 @@ def sentence_length_spread(text: str) -> float:
     before the attack set decides for you.
     """
     # TODO: replace this
-    return 0.0
+  
 
 
 def type_token_ratio(text: str) -> float:
-    """
+        tokens = words(text)
+
+        if not tokens:
+            return 0.0
+
+        return len(set(tokens)) / len(tokens)
+"""
     Unique words over total words. ← TODO
 
     Returns:
@@ -81,11 +99,19 @@ def type_token_ratio(text: str) -> float:
     that alone can look like a signal.
     """
     # TODO: replace this
-    return 0.0
+   
 
 
 def punctuation_density(text: str) -> float:
-    """
+        tokens = words(text)
+
+        if not tokens:
+            return 0.0
+
+        punctuation = re.findall(r"[,;:!?—-]", text)
+
+        return len(punctuation) / len(tokens)
+"""
     How much punctuation, relative to length. ← TODO
 
     Returns:
@@ -95,13 +121,26 @@ def punctuation_density(text: str) -> float:
         writers.
     """
     # TODO: replace this
-    return 0.0
+    
 
 
 # ── Combining them ───────────────────────────────────────────────────────────
 
 def style_signal(text: str) -> float:
-    """
+        spread = sentence_length_spread(text)
+        vocabulary = type_token_ratio(text)
+        punctuation = punctuation_density(text)
+
+        # Normalize each measure to a 0–1 scale
+        spread_score = 1.0 - min(spread, 1.0)
+        vocabulary_score = 1.0 - vocabulary
+        punctuation_score = 1.0 - min(punctuation, 1.0)
+
+        # Average the three measures
+        score = (spread_score + vocabulary_score + punctuation_score) / 3
+
+        return max(0.0, min(score, 1.0))
+"""
     The style signal as a 0–1 score. **Higher means more likely AI.** ← TODO
 
     Combine your three measures into one number. Same direction as
@@ -123,8 +162,6 @@ def style_signal(text: str) -> float:
     to signal one, and it is plain writing that gets accused.
     """
     # TODO: replace this
-    return 0.5
-
 
 if __name__ == "__main__":
     import sys

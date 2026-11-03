@@ -39,7 +39,13 @@
 <!-- The path a submission takes, from arriving to the label a reader sees.
      Six or seven steps — this is the trace you wrote in Milestone 1. -->
 
-
+1. The writer submits their text and creator ID through the `/submit` endpoint.
+2. The system validates the submission to ensure the text is provided and is not empty.
+3. `detector.py` analyzes how predictable the text is and generates a model score.
+4. `stylometry.py` examines sentence length, vocabulary diversity, and punctuation patterns to generate a style score.
+5. `scoring.py::combine_signals` combines both scores to estimate how AI-like the writing appears.
+6. `scoring.py::score_to_label` converts the score into a human, unsure, or AI classification.
+7. The system records the decision in an audit log and returns the result to the writer, who can appeal if they disagree.
 
 ---
 
@@ -55,17 +61,16 @@
 
 **What it measures:**
 
-**Why that might differ between human and AI writing:**
-
-**What it can't see:**
-
-### Signal two — the style signal
-
-**What it measures:**
+The style signal examines writing patterns, including sentence length variation, vocabulary diversity, and punctuation usage.
 
 **Why that might differ between human and AI writing:**
 
+AI-generated writing may have more consistent sentence structures and repetitive patterns, while human writing can vary in sentence length, word choice, and punctuation. However, these patterns are not always consistent across writers.
+
 **What it can't see:**
+
+The style signal cannot understand the meaning of the writing or determine who actually wrote it. For example, adding punctuation, introducing typos, or changing sentence structures can affect the score without changing whether the text was written by a human or AI.
+
 
 ### The combining rule
 
@@ -74,18 +79,52 @@
 
 **The rule:**
 
+The system uses a weighted average to combine the model and style signals into one final score between 0 and 1. Both signals have equal importance. I chose this approach because relying too heavily on one signal could increase the risk of false positives. When the signals disagree, the final score reflects that uncertainty rather than automatically classifying the writing as AI-generated.
+
 **The numbers:**
+
+Model signal weight = 0.5  
+Style signal weight = 0.5
+
+Final score = (0.5 × model score) + (0.5 × style score)
 
 **Where it lives:** `scoring.py::combine_signals`
 
-<!-- ⚠️ The grader checks your code against that line. If your rule lives
-     somewhere else, say where. -->
-
 **A case where my two signals split, and what my rule does with it:**
 
+For example, suppose the model signal produces a score of 0.90, suggesting the writing is highly predictable and potentially AI-generated. However, the style signal produces a score of 0.10, suggesting the writing patterns are more human-like. The combined score would be 0.50. Instead of relying on either signal alone, the system accounts for their disagreement. Depending on the configured thresholds, this score could fall into the unsure category.
 
+### False-Positive Scenario
 
+Imagine a student who writes an assignment entirely on their own but uses simple vocabulary and short sentences. The model might consider their writing highly predictable and assign it a high AI score. Suppose the combined score is 0.85 and the system classifies the assignment as high-confidence AI.
+
+Even though the student wrote the assignment themselves, they could face questions about academic integrity. This demonstrates why a high AI score should not automatically be treated as proof of AI usage.
+
+I think the student should have the opportunity to appeal the decision and request a human review. The reviewer could examine supporting evidence, such as drafts, revision history, and the student's explanation. If the decision is incorrect, the classification should be corrected, and the outcome documented in the audit log.
+
+This approach would help reduce the harm caused by false positives while making the system more transparent and accountable.
+
+### API Endpoint Contracts
+
+**POST /submit**
+
+The endpoint receives JSON containing `text` and `creator_id`. The system validates the submission, analyzes the writing, and returns JSON containing `content_id`, `guess`, `confidence`, `label`, `model_score`, and `style_score`. The content ID allows the submission to be tracked, while the scores and label explain the system's classification. Invalid submissions should receive an error response rather than causing the service to crash.
+
+**POST /appeal**
+
+The endpoint receives JSON containing `content_id` and `reasoning`. It checks whether the content ID exists in the audit log. If the submission exists, the system records the appeal, changes its status to `under_review`, and returns confirmation to the writer. An invalid content ID should receive an error response. The appeal does not automatically change the original classification; it creates an opportunity for further review.
 ---
+**What it measures:**
+
+The model signal uses GPT-2 to measure how predictable the submitted text is through perplexity. Lower perplexity produces a higher AI-likeness score.
+
+**Why that might differ between human and AI writing:**
+
+AI-generated writing may follow more predictable word patterns, while human writing can be less consistent. However, predictable writing does not necessarily mean AI was used.
+
+**What it can't see:**
+
+The model cannot determine who actually wrote the text. For example, a student using simple vocabulary or writing in a second language might receive a high AI score even if they wrote everything themselves.
 
 ## Label Variants
 
@@ -113,7 +152,34 @@
 
 <!-- One submission and one appeal, pasted as text: the request, the response,
      and the log entries. -->
+### Milestone 3 — Submit Test
 
+Request:
+curl -X POST http://127.0.0.1:5000/submit \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I spent the weekend studying for my data science exam.", "creator_id": "student1"}'
+
+Result:
+- HTTP 200 OK
+- model_score: 0.3492
+- guess: unsure
+- confidence: 0.5
+- A unique content_id was generated.
+
+### Audit Log Test
+
+Request:
+curl "http://127.0.0.1:5000/log?limit=3"
+
+Result:
+- The submission appeared in the audit log.
+- creator_id: student1
+- model_score: 0.3492
+- status: decided
+
+### Invalid Input Test
+
+An empty text submission returned HTTP 400 BAD REQUEST.
 **A submission**
 
 <!-- The response needs content_id, guess, confidence, label, AND both
@@ -124,12 +190,20 @@
 ```bash
 $ curl -X POST http://127.0.0.1:5000/submit \
   -H "Content-Type: application/json" \
-  -d '{"text": "...", "creator_id": "..."}'
+  -d '{"text": "I spent the weekend studying for my data science exam.", "creator_id": "student1"}'
 ```
 
 ```json
 
 ```
+{
+  "content_id": "PASTE_YOUR_ACTUAL_CONTENT_ID_HERE",
+  "guess": "unsure",
+  "confidence": 0.5,
+  "label": "The system is unsure whether this text was AI-generated.",
+  "model_score": 0.3492,
+  "style_score": 0.0
+}
 
 **An appeal**
 

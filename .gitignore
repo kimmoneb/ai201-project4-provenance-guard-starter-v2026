@@ -8,7 +8,9 @@ __pycache__/
 .venv/
 venv/
 env/
-
+.venv/
+.venv311/
+.venv_old/
 # Hugging Face model cache
 .cache/
 models/

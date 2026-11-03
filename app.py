@@ -30,6 +30,13 @@ from flask import Flask, jsonify, request
 
 import audit
 import config
+import detector
+import uuid
+import audit
+import stylometry
+import scoring
+
+
 
 app = Flask(__name__)
 
@@ -200,16 +207,43 @@ def submit():
     a malformed input is one of the most common real failures there is.
     """
     payload = request.get_json(silent=True) or {}
+    # Extract information from the JSON request
+    text = payload.get("text", "")
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({
+            "error": "bad_request",
+            "message": 'Send JSON with a non-empty "text".'
+        }), 400
+    creator_id = payload.get("creator_id", "")
+    # Analyze the submitted text using the GPT-2 detector
+    model_score = detector.model_signal(text)
+    style_score = stylometry.style_signal(text)
+    combined_score = scoring.combine_signals(model_score, style_score)
+    # Generate a unique ID for this submission
+    content_id = str(uuid.uuid4())
+
+    # Record the submission in the audit log
+    audit.log_decision(
+        content_id=content_id,
+        creator_id=creator_id,
+        guess="unsure",
+        model_score=model_score,
+        style_score=style_score,
+        combined_score=combined_score,
+        label="The system is unsure whether this text was AI-generated.",
+        status="decided"
+    )
 
     # TODO: delete this and build the route.
     return jsonify({
-        "error": "not_implemented",
-        "message": "POST /submit isn't built yet — see the TODO in app.py.",
-        "you_sent": {
-            "text_length": len(payload.get("text", "")),
-            "creator_id": payload.get("creator_id"),
-        },
-    }), 501
+        "content_id": content_id,
+        "guess": "unsure",
+        "confidence": 0.5,
+        "label": "The system is unsure whether this text was AI-generated.",
+        "model_score": model_score,
+        "style_score": style_score,
+        "combined_score": combined_score
+    }), 200
 
 
 @app.post("/appeal")
