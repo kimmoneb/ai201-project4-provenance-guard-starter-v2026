@@ -219,6 +219,7 @@ def submit():
     model_score = detector.model_signal(text)
     style_score = stylometry.style_signal(text)
     combined_score = scoring.combine_signals(model_score, style_score)
+    guess, label = scoring.score_to_label(combined_score)
     # Generate a unique ID for this submission
     content_id = str(uuid.uuid4())
 
@@ -226,20 +227,20 @@ def submit():
     audit.log_decision(
         content_id=content_id,
         creator_id=creator_id,
-        guess="unsure",
+        guess=guess,
         model_score=model_score,
         style_score=style_score,
         combined_score=combined_score,
-        label="The system is unsure whether this text was AI-generated.",
+        label=label,
         status="decided"
     )
 
     # TODO: delete this and build the route.
     return jsonify({
         "content_id": content_id,
-        "guess": "unsure",
-        "confidence": 0.5,
-        "label": "The system is unsure whether this text was AI-generated.",
+        "guess": guess,
+        "confidence": round(abs(combined_score - 0.5) * 2, 2),
+        "label": label,
         "model_score": model_score,
         "style_score": style_score,
         "combined_score": combined_score
@@ -267,13 +268,24 @@ def appeal():
     wrong accusation and nothing at all.
     """
     payload = request.get_json(silent=True) or {}
+    content_id = payload.get("content_id", "")
+    reasoning = payload.get("reasoning", "")
+    if not content_id or not audit.entries_for(content_id):
+        return jsonify({
+            "error": "not_found",
+            "message": "No submission found with this content ID."
+        }), 404
 
-    # TODO: delete this and build the route.
+    audit.log_appeal(
+    content_id=content_id,
+    creator_id=audit.entries_for(content_id)[0]["creator_id"],
+    reasoning=reasoning
+)
     return jsonify({
-        "error": "not_implemented",
-        "message": "POST /appeal isn't built yet — see the TODO in app.py.",
-        "you_sent": payload,
-    }), 501
+        "content_id": content_id,
+        "status": "under_review",
+        "message": "Your appeal has been received and is awaiting review."
+    }), 200  
 
 
 # ── Already works ─────────────────────────────────────────────────────────────
