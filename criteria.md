@@ -45,10 +45,14 @@ Two things worth knowing before you pick numbers:
 ## 1.
 
 <!-- Your criterion. It must name a number. -->
+## 1. False Positives
 
-
+Of 10 human-written submissions, no more than 2 should be incorrectly classified as high-confidence AI.
 
 **Why this target:**
+
+I chose this target because AI detection systems can make mistakes, and falsely accusing someone of using AI could affect their credibility, especially in academic settings. I want my system to prioritize fairness and reduce the risk of false accusations while recognizing that no detection system is perfect.
+
 
 
 
@@ -57,10 +61,13 @@ Two things worth knowing before you pick numbers:
 ## 2.
 
 <!-- Your criterion. -->
+## 2. Score Spread
 
-
+The average combined score for 10 AI-generated submissions should be at least 0.3 higher than the average score for 10 human-written submissions.
 
 **Why this target:**
+
+I chose this target because I want the system to demonstrate a noticeable difference between human-written and AI-generated text. A difference of 0.3 would suggest that the two signals are helping distinguish writing patterns, while recognizing that some human and AI writing may overlap.
 
 
 
@@ -69,10 +76,16 @@ Two things worth knowing before you pick numbers:
 ## 3.
 
 <!-- Your criterion. -->
+## 3. Label Coverage
 
-
+The system should successfully produce all three labels (human, unsure, and AI) through the /submit endpoint using different text submissions.
 
 **Why this target:**
+
+I chose this target because I want to make sure the system can recognize different writing patterns instead of classifying everything as either human or AI. The unsure label is especially important because it acknowledges uncertainty and helps reduce the risk of false accusations.
+
+
+
 
 
 
@@ -82,9 +95,13 @@ Two things worth knowing before you pick numbers:
 
 <!-- Your criterion. -->
 
+## 4. Appeal Path
 
+100% of valid appeals should receive an "under_review" status and be recorded in the audit log with the content ID, creator ID, reasoning, and timestamp.
 
 **Why this target:**
+
+I chose this target because writers should have a reliable way to challenge a classification they believe is incorrect. Every valid appeal should be documented to ensure transparency and accountability. Missing an appeal could prevent someone from having their work fairly reviewed.
 
 
 
@@ -96,8 +113,13 @@ Two things worth knowing before you pick numbers:
 
 
 
+## 5. Invalid Input
+
+100% of submissions with missing or empty text should return an HTTP 400 Bad Request response instead of crashing the system.
+
 **Why this target:**
 
+I chose this target because the system should handle invalid submissions safely and consistently. Missing or empty text should not cause the application to crash or produce misleading classifications. Returning a clear error message helps users understand what went wrong and makes the API more reliable.
 
 
 ---
