@@ -498,17 +498,43 @@ that produced it:
 
 ## The Improvement
 
+
+I adjusted the `HUMAN_THRESHOLD` in `config.py` from `0.35` to `0.45` to improve how the detector identifies human-written text. Before the change, all four human-written samples were classified as `unsure`. After the change, one sample was correctly classified as `human`, while the other three remained `unsure`.
+
+I ran the evaluation again across three trials. None of the four human-written samples were incorrectly classified as AI, and all invalid-input tests continued returning HTTP 400. However, the score spread between human and AI-generated writing remained below the target of 0.30, and the label coverage test still did not produce all three labels.
+
+This improvement helped the detector recognize some human-written text without increasing false positives in the tested samples. However, more testing with a larger and more diverse dataset is needed before concluding that the adjustment improves overall reliability.
+
 **What I changed:**
 
+I changed the `HUMAN_THRESHOLD` in `config.py` from `0.35` to `0.45` to help the detector better recognize human-written text. I kept the AI threshold at `0.65`.
+
 **Which diagnosis pointed at it:**
+
+During the initial evaluation, all four human-written samples were classified as `unsure`. This suggested that the threshold was too restrictive for identifying human writing. I wanted to see whether adjusting it would improve classification without increasing false accusations.
+
+
 
 ### Attack Run — After
 
 <!-- Same format. `run_attacks.py --label after` -->
 
 
+I reran the three attacks after changing the human classification threshold from `0.35` to `0.45`.
+
+- **Paraphrasing:** HTTP 200, classified as `unsure`. No change from the original test.
+- **Informal writing:** HTTP 200, classified as `human`. Previously classified as `unsure`.
+- **Repetition:** HTTP 200, classified as `ai`. No change from the original test.
+
+The results were saved in `results/attack_run_2026-11-13_1729_after.md`.
 
 **Did it help, and how do I know:**
+
+The threshold adjustment helped the detector recognize informal writing as human rather than uncertain. However, paraphrasing remained uncertain, and repetitive writing was still classified as AI, showing a potential false-positive risk.
+
+The improvement made the detector more willing to identify human writing, but it did not resolve all the weaknesses identified in the attack tests. More diverse examples and further evaluation would be necessary before using this system in a real-world setting.
+
+
 
 <!-- Widening the unsure band usually fixes one problem and creates another.
      Reporting that trade honestly is worth full credit. -->
