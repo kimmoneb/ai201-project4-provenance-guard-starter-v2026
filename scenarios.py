@@ -30,8 +30,10 @@ SCENARIOS = [
         # things you actually wrote. This is the criterion that matters most and
         # it's meaningless with someone else's prose.
         "texts": [
-            "REPLACE ME with a paragraph you wrote yourself.",
-            "REPLACE ME with another one. Ten pieces is the usual number.",
+            "Hi, my name is Kimmone. I have a background in Computer Science and I am currently doing my Masters in Data Scince. My hobbies include: workout class, swimming, traveling, etc.",
+            "I spent my summer on in the East Coast. I had so much fun trying new food and new activities.",
+            "Last Summer I went to St Martin and I travelled to so many places. I went to Anguilla, St Barths and Saba.",
+            "In St Martin, I met alot of people, including solo travellers. Island Hoping was on my list and I did that. I tried so many cusine.",
         ],
     },
     {
@@ -40,10 +42,11 @@ SCENARIOS = [
         # Inputs spread across your score range, so you can check all three
         # labels are actually reachable.
         "texts": [
-            "REPLACE ME with something you're confident is AI-generated.",
-            "REPLACE ME with something you're confident is human-written.",
-            "REPLACE ME with something genuinely borderline.",
-        ],
+            "Artificial intelligence has transformed the way organizations process information, automate workflows, and make data-driven decisions.",
+            "What a day! I missed my bus, spilled coffee on my shirt, and forgot my umbrella at home.",
+            "I enjoy learning about technology because it helps me understand how different systems work and how they affect people's lives.",
+],
+       
     },
     # A bad-input criterion looks like this. Uncomment and adjust if that's one
     # of your five — these are raw request bodies, sent exactly as written.
