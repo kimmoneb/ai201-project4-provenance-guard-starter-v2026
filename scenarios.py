@@ -22,13 +22,11 @@ A scenario carries **either** of these:
               because you cannot express "the field is missing" as a string.
 """
 
+
 SCENARIOS = [
     {
         "name": "my own writing",
         "criterion": 1,
-        # ⚠️ PUT YOUR OWN WRITING HERE. Not AI text, not a sample from the web —
-        # things you actually wrote. This is the criterion that matters most and
-        # it's meaningless with someone else's prose.
         "texts": [
             "Hi, my name is Kimmone. I have a background in Computer Science and I am currently doing my Masters in Data Scince. My hobbies include: workout class, swimming, traveling, etc.",
             "I spent my summer on in the East Coast. I had so much fun trying new food and new activities.",
@@ -37,17 +35,41 @@ SCENARIOS = [
         ],
     },
     {
-        "name": "label coverage",
+        "name": "score spread - human",
         "criterion": 2,
-        # Inputs spread across your score range, so you can check all three
-        # labels are actually reachable.
+        "texts": [
+            "Hi, my name is Kimmone. I have a background in Computer Science and I am currently doing my Masters in Data Scince. My hobbies include: workout class, swimming, traveling, etc.",
+            "I spent my summer on in the East Coast. I had so much fun trying new food and new activities.",
+            "Last Summer I went to St Martin and I travelled to so many places. I went to Anguilla, St Barths and Saba.",
+            "In St Martin, I met alot of people, including solo travellers. Island Hoping was on my list and I did that. I tried so many cusine.",
+        ],
+    },
+    {
+        "name": "score spread - AI",
+        "criterion": 2,
+        "texts": [
+            "Artificial intelligence is transforming industries by improving efficiency, automating repetitive tasks, and supporting data-driven decision-making.",
+            "Machine learning algorithms analyze large datasets to identify patterns, generate predictions, and improve organizational performance.",
+            "The integration of artificial intelligence into education provides opportunities for personalized learning and improved student outcomes.",
+            "Data science combines statistical methods, programming techniques, and domain expertise to extract meaningful insights from complex datasets.",
+            "Organizations increasingly rely on predictive analytics to optimize operations, reduce costs, and improve customer experiences.",
+            "Natural language processing enables computer systems to interpret, analyze, and generate human language across various applications.",
+            "Responsible artificial intelligence development requires transparency, accountability, fairness, and ongoing evaluation of potential risks.",
+            "Cloud computing provides scalable infrastructure that allows businesses to store, process, and analyze information efficiently.",
+            "Advancements in automation are reshaping the modern workforce by changing how employees perform routine and specialized tasks.",
+            "Effective data governance establishes policies and procedures to maintain data quality, protect privacy, and support responsible decision-making.",
+        ],
+    },
+    {
+        "name": "label coverage",
+        "criterion": 3,
         "texts": [
             "Artificial intelligence has transformed the way organizations process information, automate workflows, and make data-driven decisions.",
             "What a day! I missed my bus, spilled coffee on my shirt, and forgot my umbrella at home.",
             "I enjoy learning about technology because it helps me understand how different systems work and how they affect people's lives.",
-],
-       
+        ],
     },
+
     # A bad-input criterion looks like this. Uncomment and adjust if that's one
     # of your five — these are raw request bodies, sent exactly as written.
     #
@@ -62,12 +84,24 @@ SCENARIOS = [
     #     ],
     # },
 
+    {
+        "name": "bad input",
+        "criterion": 5,
+        "bodies": [
+            {"text": "", "creator_id": "eval_bad_empty"},
+            {"creator_id": "eval_bad_missing"},
+            {"text": None, "creator_id": "eval_bad_null"},
+        ],
+    },
+
     # TODO: add what your remaining criteria need.
     #
     # A criterion about the appeal path can't be tested by sending text alone;
     # it needs a submission first and then an appeal against the content_id
     # that came back. You'll need to test that one by hand, or extend this file
     # and run_eval.py to do it. Saying which you did is part of the write-up.
+
+    
 ]
 
 
