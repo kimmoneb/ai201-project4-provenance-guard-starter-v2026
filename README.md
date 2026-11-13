@@ -268,22 +268,40 @@ curl "http://127.0.0.1:5000/log?limit=2"
 
 ## Rate Limiting
 
-**My limits:** ___ per minute, ___ per day
+*## Rate Limiting
+
+**My limits:** 10 requests per minute, 200 requests per day.
 
 **Why those numbers and not others:**
-<!-- Think about two people: a real writer submitting their own work a few
-     times an hour, and a script sending a thousand variations to map your
-     thresholds. Your numbers have to be liveable for the first and hostile to
-     the second. -->
 
-**What a caller counts as:** <!-- per address, or per creator_id? They fail
-differently — one script can look like a thousand callers, and one household
-can look like one. -->
+I chose these limits because I want legitimate writers to have enough opportunities to submit and review their work without making it easy for automated scripts to overwhelm the system. Ten requests per minute should be sufficient for normal use, while 200 per day limits repeated attempts to test or manipulate the detector.
+
+**What a caller counts as:**
+
+A caller is identified by their IP address. This means requests from the same IP address share the rate limit, even if they use different creator IDs.
 
 **The run of status codes when I pushed past it:**
 
+```text
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
+```
+
+Out of 15 requests, 10 were successful and 5 were rejected with HTTP 429. This confirms that the per-minute rate limit was enforced.
+
+**Flood test results:** `results/flood_2026-11-13_1337.md`
 <!-- python run_attacks.py --flood 15 -->
 
+
+### Attack Test Results
+
+I tested three attacks against the `/submit` endpoint. All three requests returned HTTP 200, with no crashes.
+
+- **Paraphrasing — BROKE:** The detector returned "unsure" with confidence 0.28, showing that paraphrasing may make AI-generated text harder to identify.
+- **Informal writing — BROKE:** The detector returned "unsure" with confidence 0.25, suggesting that informal language can reduce detection confidence.
+- **Repetition — HELD:** The detector returned "ai" with confidence 0.82, meaning the repetitive writing was still flagged.
+
+These results show that the API remained operational, but its classification was less decisive for paraphrased and informal text.
+  
 ```
 
 ```
@@ -418,7 +436,8 @@ that produced it:
 
      Do not delete and recreate this repository.
      ═════════════════════════════════════════════════════════════════════ -->
-
+rate limit
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
