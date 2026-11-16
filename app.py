@@ -25,7 +25,7 @@ Routes:
 """
 
 import uuid
-
+import time
 from flask import Flask, jsonify, request
 
 import audit
@@ -84,6 +84,7 @@ if config.RATE_LIMITING_ENABLED:
         matters: one script can look like a thousand callers, and one household
         can look like one.
         """
+        
         payload = request.get_json(silent=True)
         # A body that parses as JSON but isn't an object — a bare list or
         # string — has no .get. Without this guard the key function raises
@@ -207,6 +208,11 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
+    start_time = time.perf_counter()
+
+    payload = request.get_json(silent=True) or {}
+    # Extract information from the JSON request
+    text = payload.get("text", "")
     payload = request.get_json(silent=True) or {}
     # Extract information from the JSON request
     text = payload.get("text", "")
@@ -226,6 +232,13 @@ def submit():
     content_id = str(uuid.uuid4())
 
     # Record the submission in the audit log
+    
+    # Calculate processing time in milliseconds
+    processing_time_ms = round(
+        (time.perf_counter() - start_time) * 1000, 2
+    )
+
+    # Record the prediction and linguistic patterns
     audit.log_decision(
         content_id=content_id,
         creator_id=creator_id,
@@ -234,8 +247,17 @@ def submit():
         style_score=style_score,
         combined_score=combined_score,
         label=label,
-        status="decided"
+        status="decided",
+        http_status=200,
+        processing_time_ms=processing_time_ms,
+        linguistic_patterns={
+            "ai_vocabulary_count": len(patterns["ai_vocabulary"]),
+            "em_dash_count": patterns["em_dash_count"],
+            "oxford_comma_count": patterns["oxford_comma_count"],
+            "negative_parallelism_count": patterns["negative_parallelism_count"]
+        }
     )
+
 
     # TODO: delete this and build the route.
     return jsonify({
