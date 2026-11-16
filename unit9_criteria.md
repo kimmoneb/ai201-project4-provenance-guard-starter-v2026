@@ -34,3 +34,15 @@ em dashes, Oxford commas, and sentence structures.
    request outcome, and pattern counts for every
    evaluated submission, without adding raw text
    to the monitoring fields.
+
+
+
+## False Positive Investigation
+
+During my initial evaluation of 20 human-written and 20 AI-generated samples, the detector incorrectly classified one of my human-written passages as AI.
+
+The passage received a model score of 0.7981, a style score of 0.6946, and a combined score of 0.7463, exceeding the AI classification threshold of 0.65.
+
+Both existing signals contributed to the incorrect classification. The new linguistic analyzer found no AI-associated vocabulary or em dashes in this passage.
+
+This suggests that conventional human writing can receive high AI-likelihood scores even without the linguistic patterns being investigated. My next step is to evaluate whether additional linguistic features can improve classification while maintaining a low false-positive rate.
