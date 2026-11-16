@@ -208,19 +208,28 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
+    
     start_time = time.perf_counter()
 
     payload = request.get_json(silent=True) or {}
+
+    # Check that the JSON is an object, not a list or string
+    if not isinstance(payload, dict):
+        return jsonify({
+            "error": "bad_request",
+            "message": "JSON body must be an object."
+        }), 400
+
     # Extract information from the JSON request
     text = payload.get("text", "")
-    payload = request.get_json(silent=True) or {}
-    # Extract information from the JSON request
-    text = payload.get("text", "")
+
+    # Check that text is valid and not empty
     if not isinstance(text, str) or not text.strip():
         return jsonify({
             "error": "bad_request",
             "message": 'Send JSON with a non-empty "text".'
         }), 400
+
     creator_id = payload.get("creator_id", "")
     # Analyze the submitted text using the GPT-2 detector
     model_score = detector.model_signal(text)
