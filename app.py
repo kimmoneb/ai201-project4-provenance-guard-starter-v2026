@@ -35,6 +35,7 @@ import uuid
 import audit
 import stylometry
 import scoring
+import linguistic_patterns
 
 
 
@@ -218,6 +219,7 @@ def submit():
     # Analyze the submitted text using the GPT-2 detector
     model_score = detector.model_signal(text)
     style_score = stylometry.style_signal(text)
+    patterns = linguistic_patterns.analyze_patterns(text)
     combined_score = scoring.combine_signals(model_score, style_score)
     guess, label = scoring.score_to_label(combined_score)
     # Generate a unique ID for this submission
@@ -243,7 +245,8 @@ def submit():
         "label": label,
         "model_score": model_score,
         "style_score": style_score,
-        "combined_score": combined_score
+        "combined_score": combined_score,
+        "linguistic_patterns": patterns
     }), 200
 
 
