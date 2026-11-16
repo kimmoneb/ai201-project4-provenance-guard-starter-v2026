@@ -675,6 +675,6 @@ A future improvement would be deploying the service to a hosted environment with
 
 I used Claude to assist with troubleshooting, especially when I repeatedly encountered HTTP errors while testing my API endpoints. It helped me investigate possible causes, understand the error messages, and identify areas of my code that needed improvement. I reviewed the suggestions, made changes to my implementation, and tested the endpoints again to verify that the issues were resolved.
 
-Both tools served as learning and debugging resources throughout the project. I was responsible for evaluating the results, identifying the system's limitations, and deciding which changes were appropriate to implement.
+It served as learning and debugging resources throughout the project. I was responsible for evaluating the results, identifying the system's limitations, and deciding which changes were appropriate to implement.
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
