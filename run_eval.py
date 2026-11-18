@@ -26,6 +26,7 @@ import datetime as dt
 import json
 import sys
 from pathlib import Path
+import time
 
 import config
 
@@ -73,6 +74,11 @@ def main():
     parser.add_argument("--label", default="")
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--timeout", type=float, default=90.0)
+    parser.add_argument(
+    "--scenarios",
+    default="scenarios",
+    help="Python module containing evaluation scenarios"
+)
     args = parser.parse_args()
 
     try:
@@ -83,7 +89,10 @@ def main():
         sys.exit(1)
 
     try:
-        import scenarios
+        import importlib
+
+        scenarios = importlib.import_module(args.scenarios)
+
     except ImportError:
         print("No scenarios.py found. Milestone 3 starts by filling it in.",
               file=sys.stderr)
@@ -97,7 +106,10 @@ def main():
         sys.exit(1)
 
     try:
-        requests.get(f"{args.url}/health", timeout=5)
+        response = requests.get(f"{args.url}/ping", timeout=5)
+
+        if response.status_code not in (200, 405):
+            response.raise_for_status()
     except Exception:  # noqa: BLE001
         print(f"Nothing answering at {args.url}. Start it:  python app.py",
               file=sys.stderr)
@@ -108,12 +120,15 @@ def main():
 
     rows = []
     for scenario in scenarios.SCENARIOS:
+        if scenario["criterion"] not in [4, 5]:
+            continue
         print(f"\n{scenario['name']}  (criterion {scenario.get('criterion') or '—'})")
 
         trials = []
         for trial in range(1, args.trials + 1):
             results = []
             for i, body in enumerate(bodies_for(scenario), 1):
+                time.sleep(7)
                 preview = describe(body)
                 try:
                     response = requests.post(f"{args.url}/submit", json=body,

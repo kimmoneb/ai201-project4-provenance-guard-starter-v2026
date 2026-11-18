@@ -225,6 +225,27 @@ def submit():
 
     # Check that text is valid and not empty
     if not isinstance(text, str) or not text.strip():
+        #print("DEBUG: Empty text validation triggered", flush=True)
+        # Calculate how long the rejected request took
+        processing_time_ms = round(
+            (time.perf_counter() - start_time) * 1000, 2
+        )
+
+        # Record the rejected request in the audit log
+        audit.log_decision(
+            content_id=str(uuid.uuid4()),
+            creator_id=payload.get("creator_id", ""),
+            guess="not_evaluated",
+            model_score=None,
+            style_score=None,
+            combined_score=None,
+            label="Rejected: text must be a non-empty string.",
+            status="rejected",
+            http_status=400,
+            processing_time_ms=processing_time_ms,
+            rejection_reason="empty_or_invalid_text"
+        )
+
         return jsonify({
             "error": "bad_request",
             "message": 'Send JSON with a non-empty "text".'
